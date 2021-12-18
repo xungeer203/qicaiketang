@@ -69,14 +69,15 @@ def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼
             row.height = Mm(7)
         # table.rows[0].cells[0].height = Mm(10)
 
-
-
-        doc.add_paragraph("")
-
-
+        run = doc.add_paragraph("")
+        run.paragraph_format.space_after = Pt(0)
 
 
 
 
 
-    doc.save("test.docx")  # todo: font to be modified
+
+
+
+
+    doc.save("test.docx")

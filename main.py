@@ -1,13 +1,16 @@
 from pypinyin import pinyin as c_py
+from pypinyin_dict.pinyin_data import kxhc1983
 import export
 
+# pypinyin默认的字典，里面的多音字太多了（有可能是港澳台日韩读音）。这里采用《现代汉语词典》（kxhc1983）的拼音数据。
+# ref：https://pypinyin.readthedocs.io/zh_CN/master/usage.html#custom-dict
+kxhc1983.load()
+
 char_size = 11  # a character is 14mm width
-# todo: "zhuang" is longer than 14mm???
 char_size_half = char_size * 0.2
 width_available = 145  # a single page width is 145mm
 
 ciyus = ["落下", "荒地", "落下", "庄庄", "村庄", "洛阳", "联络", "荒野", "荒芜", "荒地", "饥荒", "荒年", "慌张", "说谎"]
-# todo: "落下" 多音字 显示不出来？？？
 
 pinyins = [[]]
 zis = [[]]
@@ -17,24 +20,21 @@ new_pinyins = []
 new_zis = []
 # width_occupied = 0
 for ciyu in ciyus:
-    # todo: heteronym to be added and checked.
 
     if not len(zis):
-        # n_zi = 0
         width_occupied =0
     else:
-        # n_zi = len(zis[i])
         widths_zi = [char_size if x != "" else char_size_half for x in zis[i]]
         width_occupied = sum(widths_zi)
 
-    # width_occupied = n_zi * char_size + n_ciyu * char_size_half
-
-
     if not new_pinyins:
-        for zi in ciyu:
-            # print(c_py(zi, heteronym=False))
+        ciyu_pinyin = c_py(ciyu, heteronym=False)  # 多音字: 按词语获取拼音,可以获得更准确的拼音(相对按字查拼音).
+        for zi, zi_pinyin in zip(ciyu, ciyu_pinyin):
 
-            new_pinyins.append(c_py(zi, heteronym=False)[0][0])
+            zi_pinyin_no = len(c_py(zi, heteronym=True)[0])
+            marker_duoyinzi = "" if zi_pinyin_no == 1 else "*"
+            # print(c_py(zi, heteronym=True))
+            new_pinyins.append(marker_duoyinzi+zi_pinyin[0])  # 拼音前面加星标,如果这个字是多音字.
             new_zis.append(zi)
 
     width_new = len(new_zis) * char_size
