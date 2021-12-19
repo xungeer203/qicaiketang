@@ -1,83 +1,107 @@
-from pypinyin import pinyin as c_py
-from pypinyin_dict.pinyin_data import kxhc1983
-import export
+import pandas as pd
+# import itertools
+from functools import reduce
+import operation
+import pinyin_finder
+import writedoc
 
-# pypinyin默认的字典，里面的多音字太多了（有可能是港澳台日韩读音）。这里采用《现代汉语词典》（kxhc1983）的拼音数据。
-# ref：https://pypinyin.readthedocs.io/zh_CN/master/usage.html#custom-dict
-kxhc1983.load()
+# df = pd.read_csv("ciyu_data.csv", index_col="no", nrows=10)
+df = pd.read_csv("ciyu_data.csv", index_col="no")
+# print(df)
+ciyus = df.ci.to_list()
+ciyus = [x.split(", ") for x in ciyus]  # 词语列表
+ciyus_jinsi = df.jisici_zuci.tolist()
+ciyus_jinsi = [x.split(", ") for x in ciyus_jinsi]  # 近似词列表
+ciyus_total = [x+y for x, y in zip(ciyus,ciyus_jinsi)]  # 词语总列表, todo: 形近字高亮
+# print(ciyus_total)
 
-char_size = 11  # a character is 14mm width
-char_size_half = char_size * 0.2
-width_available = 145  # a single page width is 145mm
+# set_no = 3  # 每天学习几个字?
+# # ciyus_today = "".join(ciyus_total[:2])
+# ciyus_today = ciyus_total[:set_no]
+# print(ciyus_today)
+# ciyus_today = reduce(lambda x,y: x+y, ciyus_today)
+# print(ciyus_today)
 
-ciyus = ["落下", "荒地", "落下", "庄庄", "村庄", "洛阳", "联络", "荒野", "荒芜", "荒地", "饥荒", "荒年", "慌张", "说谎"]
+# operation.operation(ciyus_today)
 
-pinyins = [[]]
-zis = [[]]
+
+n_total = len(reduce(lambda x,y: x+y, ciyus_total))
+df2 = pd.DataFrame(index=range(n_total),columns=["no","ci", "pinyin_find", "duoyinzi", "pinyin_final", "zi_no", "pianmu", "nianji"])
+
 i = 0
-n_ciyu = 0
-new_pinyins = []
-new_zis = []
-# width_occupied = 0
-for ciyu in ciyus:
+zi_no = 0
+for yizu in ciyus_total:
 
-    if not len(zis):
-        width_occupied =0
-    else:
-        widths_zi = [char_size if x != "" else char_size_half for x in zis[i]]
-        width_occupied = sum(widths_zi)
+    zi_no += 1
+    for yige in yizu:
+        pinyin_find, duoyinzi = pinyin_finder.operation(yige)
 
-    if not new_pinyins:
-        ciyu_pinyin = c_py(ciyu, heteronym=False)  # 多音字: 按词语获取拼音,可以获得更准确的拼音(相对按字查拼音).
-        for zi, zi_pinyin in zip(ciyu, ciyu_pinyin):
+        df2.at[i,"no"] = i+1
+        df2.at[i,"ci"] = yige
+        df2.at[i,"pinyin_find"] = pinyin_find
+        df2.at[i, "duoyinzi"] = duoyinzi
+        df2.at[i, "pinyin_final"] = pinyin_find
+        df2.at[i,"zi_no"] = int(zi_no)
+        df2.at[i,"pianmu"] = df.at[zi_no, "pianmu"]
+        df2.at[i,"nianji"] = df.at[zi_no, "nianji"]
 
-            zi_pinyin_no = len(c_py(zi, heteronym=True)[0])
-            marker_duoyinzi = "" if zi_pinyin_no == 1 else "*"
-            # print(c_py(zi, heteronym=True))
-            new_pinyins.append(marker_duoyinzi+zi_pinyin[0])  # 拼音前面加星标,如果这个字是多音字.
-            new_zis.append(zi)
-
-    width_new = len(new_zis) * char_size
-    # print(pinyins)
-    # print(zis)
-    # print(new_pinyins)
-    # print(new_zis)
-    # print(f"{width_occupied} <> {width_available}")
-    # print(f"{width_occupied+width_new} <> {width_available}")
-    # print(f"{width_occupied+width_new+char_size_half} <> {width_available}")
-    # print("\n")
-    if (width_occupied + width_new) > width_available:
         i += 1
-        n_ciyu = 0
-        zis.append([])
-        pinyins.append([])
-    elif (width_occupied + width_new + char_size_half) > width_available:
-        for new_zi, new_pinyin in zip(new_zis, new_pinyins):
-            zis[i].append(new_zi)
-            pinyins[i].append(new_pinyin)
-        i += 1
-        n_ciyu = 0
-        zis.append([])
-        pinyins.append([])
-    else:
-        for new_zi, new_pinyin in zip(new_zis, new_pinyins):
-            zis[i].append(new_zi)
-            pinyins[i].append(new_pinyin)
-        zis[i].append("")
-        pinyins[i].append("")
-        new_pinyins = []
-        new_zis = []
+
+# 修改多音字的错误
+# todo: to be optimized
+# print(df2.loc[[1160], ["ci", "pinyin_final"]])
+alist = [13,136,152,385,520,583,613,627,644,713,821,848,971,981,1005,1223,1232,1237,1308,1443]
+mod_list = [['qiú', '*tǐ'],['gòu', '*shù'],['shuāng', '*bì'],['yī', '*qǔ'],['mào', '*pào'],['chuí', '*dǎ'],['yī', '*zhuàng'],['dā', '*tái'],['*shā', '*lā'],['*shèng', '*huì'],['*láo', '*dao'],['yín', '*fà'],['tǎng', '*zhe'],['kào', '*zhe'],['cǎi', '*tà'],['lí', '*dì'],['gāng', 'róu', '*bìng', '*jì'],['yī', 'yáo', 'yī', '*huàng'],['liè', '*qí'],['hòu', '*bèi']]
+for i, mod in zip(alist, mod_list):
+    df2.at[i, "pinyin_final"] = mod
+
+# print(df2.loc[list, "pinyin_final"])
+
+# df2 = df2.set_index("zi_no")
+# start = 1
+# end = 50
+# alist = list(range(start, end))
+# df_today = df2.loc[alist]
+# # print(df_today)
+# ciyus_today = df_today.ci.tolist()
+# yinyins_today = df_today.pinyin_final.tolist()
+# # print(ciyus_today)
+# # print(yinyins_today)
+# # print("---")
+# writedoc.writedoc(ciyus_today, yinyins_today)
 
 
 
-# for pinyin in pinyins:
-#     print(pinyin)
-#     print("\n")
-# for zi in zis:
-#     print(zi)
-#     print("\n")
+m=5  # 每天几个字?
+i=1
+start = 1
+zi_amount = df2["zi_no"].max()
+# print(zi_amount)
+df2 = df2.set_index("zi_no")
+while start <= zi_amount:
+    # start = (i-1)*m+1
+    start = start
+    end = m*i if m*i <= zi_amount else zi_amount
+    alist = list(range(start, end+1))
+    df_today = df2.loc[alist]
+    ciyus_today = df_today.ci.tolist()
+    yinyins_today = df_today.pinyin_final.tolist()
+    title = "第" + str(start) + " to " "第" + str(end)
+    file_name = title + ".docx"
+    # print(title)
+    writedoc.writedoc(ciyus_today, yinyins_today, title, file_name)
 
-export.export2word(pinyins, zis, char_size, char_size_half)
+    print(f"{i}/{zi_amount/m} printed.")
+    i += 1
+    start = (i - 1) * m + 1
 
-print("Job done.")
+
+
+
+
+
+
+# file_name = "test.xlsx"
+# df2.to_excel(file_name)
+
 

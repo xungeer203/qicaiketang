@@ -4,8 +4,9 @@ import set_cell_border as cb
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
+# todo: 表格跨页不要被打断，这是个参考：Table.allow_break_across_pages
 
-def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼音写词语"):
+def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼音写词语", file_name="text.docx"):
     # title = "第一单元"
     doc = docx.Document()
     # doc.add_heading(title, 0)
@@ -80,4 +81,4 @@ def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼
 
 
 
-    doc.save("test.docx")
+    doc.save(file_name)
