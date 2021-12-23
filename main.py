@@ -1,7 +1,5 @@
 import pandas as pd
-# import itertools
 from functools import reduce
-import operation
 import pinyin_finder
 import writedoc
 
@@ -12,21 +10,18 @@ ciyus = df.ci.to_list()
 ciyus = [x.split(", ") for x in ciyus]  # 词语列表
 ciyus_jinsi = df.jisici_zuci.tolist()
 ciyus_jinsi = [x.split(", ") for x in ciyus_jinsi]  # 近似词列表
-ciyus_total = [x+y for x, y in zip(ciyus,ciyus_jinsi)]  # 词语总列表, todo: 形近字高亮
-# print(ciyus_total)
-
-# set_no = 3  # 每天学习几个字?
-# # ciyus_today = "".join(ciyus_total[:2])
-# ciyus_today = ciyus_total[:set_no]
-# print(ciyus_today)
-# ciyus_today = reduce(lambda x,y: x+y, ciyus_today)
-# print(ciyus_today)
-
-# operation.operation(ciyus_today)
-
+ciyus_total = [x+y for x, y in zip(ciyus, ciyus_jinsi)]  # 词语总列表, todo: 形近字高亮
 
 n_total = len(reduce(lambda x,y: x+y, ciyus_total))
-df2 = pd.DataFrame(index=range(n_total),columns=["no","ci", "pinyin_find", "duoyinzi", "pinyin_final", "zi_no", "pianmu", "nianji"])
+df2 = pd.DataFrame(index=range(n_total), columns=[
+    "no",
+    "ci",
+    "pinyin_find",
+    "duoyinzi",
+    "pinyin_final",
+    "zi_no",
+    "pianmu",
+    "nianji"])  #编号, 词, 查到的拼音, 是不是多音字, 最后确定的拼音, 生字编号, 课文编号, 年级
 
 i = 0
 zi_no = 0
@@ -40,7 +35,7 @@ for yizu in ciyus_total:
         df2.at[i,"ci"] = yige
         df2.at[i,"pinyin_find"] = pinyin_find
         df2.at[i, "duoyinzi"] = duoyinzi
-        df2.at[i, "pinyin_final"] = pinyin_find
+        df2.at[i, "pinyin_final"] = pinyin_find  # 暂时填充, 用查到的拼音. 后面再修改
         df2.at[i,"zi_no"] = int(zi_no)
         df2.at[i,"pianmu"] = df.at[zi_no, "pianmu"]
         df2.at[i,"nianji"] = df.at[zi_no, "nianji"]
