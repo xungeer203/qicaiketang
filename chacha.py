@@ -1,3 +1,10 @@
+"""
+
+this is only for temporary testing.
+
+"""
+
+
 from pypinyin import pinyin as c_py
 from pypinyin_dict.pinyin_data import kxhc1983
 from pypinyin_dict.pinyin_data import ktghz2013

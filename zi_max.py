@@ -1,3 +1,11 @@
+"""
+
+try to count how many ci, zi were done.
+todo: not succeeded yet.
+
+"""
+
+
 import pandas as pd
 from collections import Counter
 df = pd.read_csv("ciyu_data.csv", index_col="no")

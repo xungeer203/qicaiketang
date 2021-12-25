@@ -4,27 +4,24 @@ import set_cell_border as cb
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 
-# todo: 表格跨页不要被打断，这是个参考：Table.allow_break_across_pages
 
 def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼音写词语", file_name="text.docx"):
-    # title = "第一单元"
     doc = docx.Document()
-    # doc.add_heading(title, 0)
-    # doc.add_paragraph(title)
 
+    # 标题
     doc.add_paragraph()
     run = doc.paragraphs[0].add_run(title)
     run.font.name = "楷体"
     run.font.size = Pt(10)
     r = run._element
-    r.rPr.rFonts.set(qn("w:eastAsia"), "楷体")  # refer to "note1"
-
-
+    r.rPr.rFonts.set(qn("w:eastAsia"), "楷体")  # refer to "note1" below
 
     for pinyins, zis in zip(pinyin_group, zi_group):
         widths = [Mm(char_size) if pinyin != "" else Mm(char_size_half) for pinyin in pinyins]
         table = doc.add_table(rows=2, cols=len(pinyins))
+        # table.allow_break_across_pages = True  # todo: 表格跨页不要被打断，这个好像不起作用
 
+        # 第一行：拼音
         row = table.rows[0].cells
         for cell, pinyin in zip(row, pinyins):
             cell.text = pinyin
@@ -34,7 +31,7 @@ def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼
             cell_paragraph_format.space_after = Pt(0)
             cell_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-
+        # 第二行：字
         row = table.rows[1].cells
         for cell, zi in zip(row, zis):
             text = ""  # todo: 哪些字需要打印出来？
@@ -60,10 +57,11 @@ def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼
             cell_paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
             cell_paragraph_format.space_after = Pt(0)
 
+        # 设置单元格宽度：
         for row in table.rows:
             for idx, width in enumerate(widths):
                 row.cells[idx].width = width
-
+        # 设置表格行高：
         for row in table.rows:
             # for idx, width in enumerate(widths):
             #     # row.cells[idx].width = width
@@ -72,13 +70,5 @@ def export2word(pinyin_group, zi_group, char_size, char_size_half, title="看拼
 
         run = doc.add_paragraph("")
         run.paragraph_format.space_after = Pt(0)
-
-
-
-
-
-
-
-
 
     doc.save(file_name)
